@@ -45,4 +45,4 @@ ls -la
 - Our fellow cohort members.
 - The creators of the C language.
 - Our software engineer-in-residence.
-- Betty Holberton.
+- Betty ALX
