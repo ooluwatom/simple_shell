@@ -1,1 +1,1 @@
-# simple_shell
+ALX Simple Shell C project
