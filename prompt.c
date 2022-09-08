@@ -1,43 +1,49 @@
 #include "shell.h"
+
 /**
- * _prompt - write prompt and read a command line.
- * @myself: String for prompt init.
- * @argv: shell arguments.
- * @hist: History head list.
+ * main - main function for the simple shell
+ * @argc: no of arguments passed to main
+ * @argv: array of arguments passed to main
+ * @environment: array of env var
  *
- * Return: NULL or pointer to command list.
+ * Return: 0 or eexit status, or ?
  */
-command_t **_prompt(char *myself, char *argv)
+
+int main(int argc __attribute__((unused)), char **argv, char **environment)
 {
-	size_t buff_size = 0;
-	ssize_t char_amount = 0;
-	char *cmd_line = NULL;
-	command_t *cmd_node = NULL;
-	command_t **cmd_list = &cmd_node; /* Command List */
+	size_t len_buffer = 0;
+	unsigned int is_pipe = 0, i;
+	var_t var = {NULL, NULL, NULL, 0, NULL, 0, NULL};
 
-	if (isatty(STDIN_FILENO))
-	{
-		/* write(STDOUT_FILENO, shell_phrase, char_amount); */
-		/* ToDO: Insert new _getline */
-		char_amount = getline(&cmd_line, &buff_size, stdin);
-	}
-	else
-	{
-		/* Take command from **argv */
-		cmd_line = argv;
-	}
-	fflush(stdin);
-	/* Insert into history here */
 
-	/* print_listint(*hist); */
-	if (char_amount < 0)
-		cmd_list = NULL;
-	else
+	var.argv = argv;
+	var.env = make_env(environment);
+	if (!isatty(STDIN_FILENO))
+		is_pipe = 1;
+	if (is_pipe == 0)
+		_puts("$ ");
+	while (getline(&(var.buffer), &len_buffer, stdin) != -1)
 	{
-		*cmd_list = _parser_cmd(myself, cmd_line);
-		free(cmd_line);
-		cmd_line = NULL;
-		return (cmd_list);
+		var.count++;
+		var.command = tokenize(var.buffer, ";");
+		for (i = 0; var.command && var.command[i] != NULL; i++)
+		{
+			var.av = tokenize(var.command[i], "\n\t\r");
+			if (var.av && var.av[0])
+				if (check_builtin(&var) == NULL)
+					check_path(&var);
+			free(var.av);
+		}
+		free(var.buffer);
+		free(var.command);
+		if (is_pipe == 0)
+			_puts("$ ");
+		var.buffer = NULL;
 	}
-	return (NULL);
+	if (is_pipe == 0)
+		_puts("\n");
+	free_env(var.env);
+	free(var.buffer);
+	exit(var.stat);
 }
+

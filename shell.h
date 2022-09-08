@@ -2,102 +2,79 @@
 #define SHELL_H
 
 #include <stdio.h>
-#include <wchar.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/types.h>
+#include <limits.h>
+#include <signal.h>
 
 /**
- * struct error_msg - An structure for each error message
- *
- * @ecode: error code
- * @msg: pointer to error message
- * @size: error message length.
+ * struct variable - variables
+ * @av: command line for arguments
+ * @buffer: buffer command
+ * @env: environ variables
+ * @count: counts of command entered
+ * @argv: argument at opening of shell
+ * @stat: exit status
+ * @command: commandds to execute
  */
-typedef struct error_msg
+typedef struct variable
 {
-	int ecode;
-	char *msg;
-	int  size;
-} error_msg_t;
-
-/**
- * struct built_s - Builtings commands
- * @command: command name.
- * @f: function to call.
- *
- * Description: Longer description
- */
-typedef struct built_s
-{
-	char *command;
-	void (*f)(char **);
-} built_t;
-
-/**
- * struct history - An structure for each command readed
- *
- * @id_h: error code
- * @comms: Commands
- * @prev: Previous element
- * @next: Next element
- */
-
-typedef struct history
-{
-	unsigned int id_h;
-	char *comms;
-	struct history *prev;
-	struct history *next;
-} history_t;
-
-/**
- * struct command_s - An structure for each command
- *
- * @command: command with arguments.
- * @next: pointer to next command.
- */
-typedef struct command_s
-{
+	char **av;
+	char *buffer;
+	char **env;
+	size_t count;
+	char **argv;
+	int stat;
 	char **command;
-	struct command_s *next;
-} command_t;
+} var_t;
 
-/* Shell functions */
-command_t **_prompt(char *, char *);
-int _fork(char *, command_t *, char *, char **);
-int _stat(char *, char *);
-int _exec(char *, char **, char **);
+/**
+ * struct builtin - struct for the builtin function
+ * @name: builtin command
+ * @f: function for builtin
+ */
 
-/* Utilities */
-char *read_line(void);
+typedef struct builtin
+{
+	char *name;
+	void (*f)(var_t *);
+} builtin_t;
 
-size_t _strlen(char *str);
-command_t *_parser_cmd(char *, char *);
-size_t _parser_arg(char *, char **, size_t *);
-void print_char_pointer_arr(char **, size_t);
-int add_nodeint(history_t **head, char *str);
+int _strcmp(char *strcmp1, char *strcmp2);
+unsigned int _strlen(char *str);
+char *new_strtok(char *str, const char *delimiter);
+char **_realloc(char **ptr, size_t *size);
 char *_strdup(char *str);
-void free_listint(history_t *head);
-void print_listint(const history_t *);
-char *find_path(char **);
-char *_strstr(char *haystack, char *needle);
-void print_env(char **);
-char *_which(char *p_rec, char *first_arg);
-char *string_nconcat(char *s1, char *s2, unsigned int n);
-int _strcmp(char *s1, char *s2);
-void _exit_func(char **);
-int verif_built_comm(char *str, char **env);
+char *_strcat(char *str1, char *str2);
 
-/* Error handler */
-void error_handler(char *, int);
-void error_handler_set_default(int, char *);
+void (*check_builtin(var_t *var))(var_t *var);
+char *add_value(char *key, char *value);
+char **find_key(char **env, char *key);
+void add_key(var_t *var);
 
-/* Command Utilities */
-command_t *new_cmd_node(char *);
-void add_tok_to_cmd(char *, command_t *, size_t, char *);
+void new_exit(var_t *var);
+void print_env(var_t *var);
+void create_env(var_t *var);
+void rem_env(var_t *var);
+void free_env(char **env);
+char **make_env(char **env);
+
+char *convert_int(unsigned int num);
+void _print_string(char *str);
+ssize_t _puts(char *str);
+void print_error(var_t *var, char *message);
+int _atoi(char *str);
+
+int execute_path(char *command, var_t *var);
+char *find_path(char **env);
+void check_path(var_t *var);
+int execute_comm(var_t *var);
+int check_dir(char *str);
+char **tokenize(char *buffer, char *delimiter);
 
 #endif
+
