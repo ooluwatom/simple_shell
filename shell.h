@@ -1,80 +1,61 @@
 #ifndef SHELL_H
 #define SHELL_H
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
-#include <limits.h>
-#include <signal.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <stdbool.h>
 
-/**
- * struct variable - variables
- * @av: command line for arguments
- * @buffer: buffer command
- * @env: environ variables
- * @count: counts of command entered
- * @argv: argument at opening of shell
- * @stat: exit status
- * @command: commandds to execute
- */
-typedef struct variable
+/* environment variables */
+extern char **environ;
+extern __sighandler_t signal(int __sig, __sighandler_t __handler);
+
+/* handle built ins */
+int checker(char **cmd, char *buf);
+void prompt_user(void);
+void handle_signal(int m);
+char **tokenizer(char *line);
+char *test_path(char **path, char *command);
+char *append_path(char *path, char *command);
+int handle_builtin(char **command, char *line);
+void exit_cmd(char **command, char *line);
+
+void print_env(void);
+
+/* string handlers */
+int _strcmp(char *s1, char *s2);
+int _strlen(char *s);
+int _strncmp(char *s1, char *s2, int n);
+char *_strdup(char *s);
+char *_strchr(char *s, char c);
+
+void execution(char *cp, char **cmd);
+char *find_path(void);
+
+/* helper function for efficient free */
+void free_buffers(char **buf);
+
+struct builtin
 {
-	char **av;
-	char *buffer;
-	char **env;
-	size_t count;
-	char **argv;
-	int stat;
-	char **command;
-} var_t;
+	char *env;
+	char *exit;
+} builtin;
 
-/**
- * struct builtin - struct for the builtin function
- * @name: builtin command
- * @f: function for builtin
- */
-
-typedef struct builtin
+struct info
 {
-	char *name;
-	void (*f)(var_t *);
-} builtin_t;
+	int final_exit;
+	int ln_count;
+} info;
 
-int _strcmp(char *strcmp1, char *strcmp2);
-unsigned int _strlen(char *str);
-char *new_strtok(char *str, const char *delimiter);
-char **_realloc(char **ptr, size_t *size);
-char *_strdup(char *str);
-char *_strcat(char *str1, char *str2);
+struct flags
+{
+	bool interactive;
+} flags;
 
-void (*check_builtin(var_t *var))(var_t *var);
-char *add_value(char *key, char *value);
-char **find_key(char **env, char *key);
-void add_key(var_t *var);
-
-void new_exit(var_t *var);
-void print_env(var_t *var);
-void create_env(var_t *var);
-void rem_env(var_t *var);
-void free_env(char **env);
-char **make_env(char **env);
-
-char *convert_int(unsigned int num);
-void _print_string(char *str);
-ssize_t _puts(char *str);
-void print_error(var_t *var, char *message);
-int _atoi(char *str);
-
-int execute_path(char *command, var_t *var);
-char *find_path(char **env);
-void check_path(var_t *var);
-int execute_comm(var_t *var);
-int check_dir(char *str);
-char **tokenize(char *buffer, char *delimiter);
-
-#endif
-
+#endif /* SHELL_H */
